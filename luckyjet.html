@@ -200,7 +200,6 @@
     </div>
 
     <script>
-        // Получаем элементы
         const predictionValue = document.getElementById('predictionValue');
         const multiplierSign = document.getElementById('multiplierSign');
         const predictBtn = document.getElementById('predictBtn');
@@ -210,32 +209,31 @@
         
         let isPredicting = false;
 
-        // Функция генерации прогноза - С НИЗКОЙ ВЕРОЯТНОСТЬЮ ВЫСОКИХ ИКСОВ
+        // РЕАЛИСТИЧНЫЕ ШАНСЫ ДЛЯ LUCKY JET (на 100 раундов)
+        // 82% - до 2x
+        // 10% - 2x-5x
+        // 5% - 5x-15x
+        // 2.5% - 15x-50x
+        // 0.5% - 50x-200x
+        
         function getRandomMultiplier() {
             const random = Math.random();
             let multiplier;
             
-            // НОВОЕ распределение множителей (высокие иксы РЕДКО):
-            // 80% - до 2x (1.0x - 2.0x)  ← увеличил с 65% до 80%
-            // 15% - 2x-5x                ← уменьшил с 20% до 15%
-            // 4% - 5x-15x                ← уменьшил с 10% до 4%
-            // 0.9% - 15x-50x             ← уменьшил с 4% до 0.9%
-            // 0.1% - 50x-200x            ← уменьшил с 1% до 0.1%
-            
-            if (random < 0.80) {
-                // 80% - низкие множители 1.0x - 2.0x
+            if (random < 0.82) {
+                // 82% - низкие множители 1.0x - 2.0x
                 multiplier = 1.0 + Math.random() * 1.0;
-            } else if (random < 0.95) {
-                // 15% - средние 2.0x - 5.0x
+            } else if (random < 0.92) {
+                // 10% - средние 2.0x - 5.0x
                 multiplier = 2.0 + Math.random() * 3.0;
-            } else if (random < 0.99) {
-                // 4% - высокие 5.0x - 15.0x
+            } else if (random < 0.97) {
+                // 5% - высокие 5.0x - 15.0x
                 multiplier = 5.0 + Math.random() * 10.0;
-            } else if (random < 0.999) {
-                // 0.9% - очень высокие 15.0x - 50.0x
+            } else if (random < 0.995) {
+                // 2.5% - очень высокие 15.0x - 50.0x
                 multiplier = 15.0 + Math.random() * 35.0;
             } else {
-                // 0.1% - супер редкие 50.0x - 200.0x
+                // 0.5% - супер редкие 50.0x - 200.0x
                 multiplier = 50.0 + Math.random() * 150.0;
             }
             
@@ -243,24 +241,22 @@
             return multiplier;
         }
 
-        // Функция расчета точности прогноза (от 1% до 100%)
         function getConfidence(multiplier) {
             let confidence;
             if (multiplier < 2) {
-                confidence = 85 + Math.random() * 10; // 85-95%
+                confidence = 85 + Math.random() * 10;
             } else if (multiplier < 5) {
-                confidence = 70 + Math.random() * 10; // 70-80%
+                confidence = 70 + Math.random() * 10;
             } else if (multiplier < 15) {
-                confidence = 55 + Math.random() * 15; // 55-70%
+                confidence = 55 + Math.random() * 15;
             } else if (multiplier < 50) {
-                confidence = 40 + Math.random() * 20; // 40-60%
+                confidence = 40 + Math.random() * 20;
             } else {
-                confidence = 25 + Math.random() * 20; // 25-45%
+                confidence = 25 + Math.random() * 20;
             }
             return Math.round(confidence);
         }
 
-        // Анимация появления результата
         function animateResult() {
             const card = document.querySelector('.prediction-card');
             card.style.transform = 'scale(1.02)';
@@ -269,40 +265,31 @@
             }, 200);
         }
 
-        // Функция получения прогноза
         async function getPrediction() {
             if (isPredicting) return;
             
             isPredicting = true;
             
-            // Меняем кнопку на состояние загрузки
             const originalText = predictBtn.innerHTML;
             predictBtn.innerHTML = '<span class="loading"></span> Анализируем статистику...';
             predictBtn.disabled = true;
             
-            // Скрываем точность во время загрузки
             confidenceBox.style.display = 'none';
             
-            // Имитация задержки (анализ)
             await new Promise(resolve => setTimeout(resolve, 800));
             
-            // Получаем случайный множитель
             const multiplier = getRandomMultiplier();
             const confidence = getConfidence(multiplier);
             
-            // Обновляем отображение прогноза
             predictionValue.textContent = multiplier.toFixed(2);
             multiplierSign.textContent = `x ${multiplier.toFixed(2)}`;
             
-            // Обновляем отображение точности
             confidenceValue.textContent = confidence;
             confidenceFill.style.width = confidence + '%';
             confidenceBox.style.display = 'block';
             
-            // Анимация
             animateResult();
             
-            // Вибрация на телефоне
             if (navigator.vibrate) {
                 if (multiplier > 15) {
                     navigator.vibrate([100, 50, 100]);
@@ -311,12 +298,10 @@
                 }
             }
             
-            // Возвращаем кнопку в исходное состояние
             predictBtn.innerHTML = originalText;
             predictBtn.disabled = false;
             isPredicting = false;
             
-            // Отправляем результат в Telegram
             if (window.Telegram && window.Telegram.WebApp) {
                 try {
                     window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -324,10 +309,8 @@
             }
         }
         
-        // Назначаем обработчик на кнопку
         predictBtn.addEventListener('click', getPrediction);
         
-        // Telegram WebApp инициализация
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
             tg.expand();
