@@ -62,14 +62,6 @@
             border: 1px solid rgba(0, 212, 255, 0.3);
         }
 
-        .prediction-label {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 14px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-        }
-
         .prediction-value {
             font-size: 80px;
             font-weight: 800;
@@ -80,7 +72,7 @@
             line-height: 1;
         }
 
-        .prediction-multiplier {
+        .multiplier-sign {
             font-size: 24px;
             font-weight: 600;
             color: #00d4ff;
@@ -126,9 +118,15 @@
         }
 
         .confidence-value {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: 700;
             color: #ffd700;
+        }
+
+        .confidence-approx {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-left: 5px;
         }
 
         .confidence-bar {
@@ -142,7 +140,7 @@
 
         .confidence-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #0099ff);
+            background: linear-gradient(90deg, #ffd700, #ff6b35);
             border-radius: 4px;
             transition: width 0.5s ease;
         }
@@ -177,9 +175,8 @@
         </div>
 
         <div class="prediction-card">
-            <div class="prediction-label">ПРОГНОЗ НА СЛЕДУЮЩИЙ РАУНД</div>
             <div class="prediction-value" id="predictionValue">—</div>
-            <div class="prediction-multiplier" id="predictionMultiplier">x —</div>
+            <div class="multiplier-sign" id="multiplierSign">x —</div>
         </div>
 
         <button class="predict-button" id="predictBtn">
@@ -188,7 +185,10 @@
 
         <div class="confidence-box" id="confidenceBox" style="display: none;">
             <div class="confidence-text">ТОЧНОСТЬ ПРОГНОЗА</div>
-            <div class="confidence-value" id="confidenceValue">0%</div>
+            <div>
+                <span class="confidence-value" id="confidenceValue">0</span>
+                <span class="confidence-approx">%</span>
+            </div>
             <div class="confidence-bar">
                 <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
             </div>
@@ -202,7 +202,7 @@
     <script>
         // Получаем элементы
         const predictionValue = document.getElementById('predictionValue');
-        const predictionMultiplier = document.getElementById('predictionMultiplier');
+        const multiplierSign = document.getElementById('multiplierSign');
         const predictBtn = document.getElementById('predictBtn');
         const confidenceBox = document.getElementById('confidenceBox');
         const confidenceValue = document.getElementById('confidenceValue');
@@ -238,23 +238,25 @@
             return multiplier;
         }
 
-        // Функция расчета точности прогноза
+        // Функция расчета точности прогноза (от 1% до 100%)
         function getConfidence(multiplier) {
             let confidence;
             if (multiplier < 2) {
-                confidence = 75 + Math.random() * 10; // 75-85%
+                confidence = 85 + Math.random() * 10; // 85-95%
             } else if (multiplier < 5) {
-                confidence = 65 + Math.random() * 10; // 65-75%
+                confidence = 70 + Math.random() * 10; // 70-80%
             } else if (multiplier < 15) {
                 confidence = 55 + Math.random() * 15; // 55-70%
+            } else if (multiplier < 50) {
+                confidence = 40 + Math.random() * 20; // 40-60%
             } else {
-                confidence = 45 + Math.random() * 20; // 45-65%
+                confidence = 25 + Math.random() * 20; // 25-45%
             }
             return Math.round(confidence);
         }
 
         // Анимация появления результата
-        function animateResult(multiplier) {
+        function animateResult() {
             const card = document.querySelector('.prediction-card');
             card.style.transform = 'scale(1.02)';
             setTimeout(() => {
@@ -285,20 +287,20 @@
             
             // Обновляем отображение прогноза
             predictionValue.textContent = multiplier.toFixed(2);
-            predictionMultiplier.textContent = `x ${multiplier.toFixed(2)}`;
+            multiplierSign.textContent = `x ${multiplier.toFixed(2)}`;
             
             // Обновляем отображение точности
-            confidenceValue.textContent = confidence + '%';
+            confidenceValue.textContent = confidence;
             confidenceFill.style.width = confidence + '%';
             confidenceBox.style.display = 'block';
             
             // Анимация
-            animateResult(multiplier);
+            animateResult();
             
             // Вибрация на телефоне
             if (navigator.vibrate) {
                 if (multiplier > 15) {
-                    navigator.vibrate([100, 50, 100]); // сильная вибрация для большого выигрыша
+                    navigator.vibrate([100, 50, 100]);
                 } else {
                     navigator.vibrate(50);
                 }
@@ -309,7 +311,7 @@
             predictBtn.disabled = false;
             isPredicting = false;
             
-            // Отправляем результат в Telegram (если есть WebApp)
+            // Отправляем результат в Telegram
             if (window.Telegram && window.Telegram.WebApp) {
                 try {
                     window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -327,7 +329,6 @@
             tg.ready();
             tg.enableClosingConfirmation();
             
-            // Настраиваем главную кнопку в Telegram
             tg.MainButton.text = "🎯 Получить прогноз";
             tg.MainButton.onClick(() => {
                 getPrediction();
@@ -336,9 +337,6 @@
         }
         
         console.log('Lucky Jet прогноз загружен');
-        
-        // Тестовый вызов для проверки работы (можно удалить)
-        console.log('Кнопка привязана, ждите нажатия');
     </script>
 </body>
 </html>
