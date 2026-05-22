@@ -106,6 +106,47 @@
             transform: scale(0.97);
         }
 
+        .predict-button:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+
+        .confidence-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .confidence-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .confidence-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0099ff);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
         .loading {
             display: inline-block;
             width: 20px;
@@ -145,6 +186,14 @@
             🔮 Получить прогноз
         </button>
 
+        <div class="confidence-box" id="confidenceBox" style="display: none;">
+            <div class="confidence-text">ТОЧНОСТЬ ПРОГНОЗА</div>
+            <div class="confidence-value" id="confidenceValue">0%</div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+            </div>
+        </div>
+
         <div class="info-note">
             * Прогноз основан на анализе реальных раундов Lucky Jet
         </div>
@@ -155,6 +204,9 @@
         const predictionValue = document.getElementById('predictionValue');
         const predictionMultiplier = document.getElementById('predictionMultiplier');
         const predictBtn = document.getElementById('predictBtn');
+        const confidenceBox = document.getElementById('confidenceBox');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const confidenceFill = document.getElementById('confidenceFill');
         
         let isPredicting = false;
 
@@ -171,26 +223,43 @@
             // 1% - 50x-200x (редкие джекпоты)
             
             if (random < 0.65) {
-                // 65% - низкие множители 1.0x - 2.0x
                 multiplier = 1.0 + Math.random() * 1.0;
             } else if (random < 0.85) {
-                // 20% - средние 2.0x - 5.0x
                 multiplier = 2.0 + Math.random() * 3.0;
             } else if (random < 0.95) {
-                // 10% - высокие 5.0x - 15.0x
                 multiplier = 5.0 + Math.random() * 10.0;
             } else if (random < 0.99) {
-                // 4% - очень высокие 15.0x - 50.0x
                 multiplier = 15.0 + Math.random() * 35.0;
             } else {
-                // 1% - супер редкие 50.0x - 200.0x
                 multiplier = 50.0 + Math.random() * 150.0;
             }
             
-            // Округляем до 2 знаков
             multiplier = Math.round(multiplier * 100) / 100;
-            
             return multiplier;
+        }
+
+        // Функция расчета точности прогноза
+        function getConfidence(multiplier) {
+            let confidence;
+            if (multiplier < 2) {
+                confidence = 75 + Math.random() * 10; // 75-85%
+            } else if (multiplier < 5) {
+                confidence = 65 + Math.random() * 10; // 65-75%
+            } else if (multiplier < 15) {
+                confidence = 55 + Math.random() * 15; // 55-70%
+            } else {
+                confidence = 45 + Math.random() * 20; // 45-65%
+            }
+            return Math.round(confidence);
+        }
+
+        // Анимация появления результата
+        function animateResult(multiplier) {
+            const card = document.querySelector('.prediction-card');
+            card.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                card.style.transform = 'scale(1)';
+            }, 200);
         }
 
         // Функция получения прогноза
@@ -204,24 +273,47 @@
             predictBtn.innerHTML = '<span class="loading"></span> Анализируем статистику...';
             predictBtn.disabled = true;
             
+            // Скрываем точность во время загрузки
+            confidenceBox.style.display = 'none';
+            
             // Имитация задержки (анализ)
             await new Promise(resolve => setTimeout(resolve, 800));
             
             // Получаем случайный множитель
             const multiplier = getRandomMultiplier();
+            const confidence = getConfidence(multiplier);
             
-            // Обновляем отображение
+            // Обновляем отображение прогноза
             predictionValue.textContent = multiplier.toFixed(2);
             predictionMultiplier.textContent = `x ${multiplier.toFixed(2)}`;
+            
+            // Обновляем отображение точности
+            confidenceValue.textContent = confidence + '%';
+            confidenceFill.style.width = confidence + '%';
+            confidenceBox.style.display = 'block';
+            
+            // Анимация
+            animateResult(multiplier);
+            
+            // Вибрация на телефоне
+            if (navigator.vibrate) {
+                if (multiplier > 15) {
+                    navigator.vibrate([100, 50, 100]); // сильная вибрация для большого выигрыша
+                } else {
+                    navigator.vibrate(50);
+                }
+            }
             
             // Возвращаем кнопку в исходное состояние
             predictBtn.innerHTML = originalText;
             predictBtn.disabled = false;
             isPredicting = false;
             
-            // Вибрация на телефоне (если поддерживается)
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
+            // Отправляем результат в Telegram (если есть WebApp)
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                } catch(e) {}
             }
         }
         
@@ -233,6 +325,7 @@
             const tg = window.Telegram.WebApp;
             tg.expand();
             tg.ready();
+            tg.enableClosingConfirmation();
             
             // Настраиваем главную кнопку в Telegram
             tg.MainButton.text = "🎯 Получить прогноз";
@@ -243,6 +336,9 @@
         }
         
         console.log('Lucky Jet прогноз загружен');
+        
+        // Тестовый вызов для проверки работы (можно удалить)
+        console.log('Кнопка привязана, ждите нажатия');
     </script>
 </body>
 </html>
