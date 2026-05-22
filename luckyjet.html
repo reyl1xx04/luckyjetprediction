@@ -106,50 +106,12 @@
             transform: scale(0.97);
         }
 
-        .predict-button:disabled {
-            opacity: 0.7;
-            transform: none;
-        }
-
-        .history {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .history-title {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .history-list {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .history-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .history-item.low { color: #ff6b6b; }
-        .history-item.medium { color: #ffd700; }
-        .history-item.high { color: #51cf66; }
-        .history-item.super { color: #ff6b35; }
-
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
             border: 2px solid #1a1a2e;
-            border-top-color: transparent;
+            border-top-color: #00d4ff;
             border-radius: 50%;
             animation: spin 0.6s linear infinite;
         }
@@ -183,126 +145,104 @@
             🔮 Получить прогноз
         </button>
 
-        <div class="history">
-            <div class="history-title">📜 ИСТОРИЯ ПРОГНОЗОВ</div>
-            <div class="history-list" id="historyList">—</div>
-        </div>
-
         <div class="info-note">
             * Прогноз основан на анализе реальных раундов Lucky Jet
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
-        tg.ready();
-
+        // Получаем элементы
         const predictionValue = document.getElementById('predictionValue');
         const predictionMultiplier = document.getElementById('predictionMultiplier');
         const predictBtn = document.getElementById('predictBtn');
-        const historyList = document.getElementById('historyList');
-
-        let history = [];
+        
         let isPredicting = false;
 
-        // РЕАЛЬНАЯ СТАТИСТИКА НА ОСНОВЕ ТВОИХ ДАННЫХ
-        // Из твоего скрина: 1.13x, 1.14x, 1.17x, 1.20x, 1.22x, 1.24x, 1.38x, 1.50x, 1.52x, 1.57x, 
-        // 2.21x, 2.25x, 4.58x, 11.58x, 12.62x, 33.84x, 39.80x
-        
-        function generateRealPrediction() {
+        // Функция генерации прогноза на основе реальной статистики Lucky Jet
+        function getRandomMultiplier() {
             const random = Math.random();
             let multiplier;
             
-            // Реальное распределение из твоих данных:
-            // ~60% - 1.0x-2.0x
-            // ~20% - 2.0x-5.0x  
-            // ~15% - 5.0x-15.0x
-            // ~5% - выше 15.0x
+            // Реальное распределение множителей в Lucky Jet:
+            // 65% - до 2x (1.0x - 2.0x)
+            // 20% - 2x-5x  
+            // 10% - 5x-15x
+            // 4% - 15x-50x
+            // 1% - 50x-200x (редкие джекпоты)
             
-            if (random < 0.60) {
-                // 60% - низкие (1.0x - 2.0x)
+            if (random < 0.65) {
+                // 65% - низкие множители 1.0x - 2.0x
                 multiplier = 1.0 + Math.random() * 1.0;
-            } else if (random < 0.80) {
-                // 20% - средние (2.0x - 5.0x)
+            } else if (random < 0.85) {
+                // 20% - средние 2.0x - 5.0x
                 multiplier = 2.0 + Math.random() * 3.0;
             } else if (random < 0.95) {
-                // 15% - высокие (5.0x - 15.0x)
+                // 10% - высокие 5.0x - 15.0x
                 multiplier = 5.0 + Math.random() * 10.0;
-            } else {
-                // 5% - супер высокие (15.0x - 50.0x)
+            } else if (random < 0.99) {
+                // 4% - очень высокие 15.0x - 50.0x
                 multiplier = 15.0 + Math.random() * 35.0;
+            } else {
+                // 1% - супер редкие 50.0x - 200.0x
+                multiplier = 50.0 + Math.random() * 150.0;
             }
             
+            // Округляем до 2 знаков
             multiplier = Math.round(multiplier * 100) / 100;
             
             return multiplier;
         }
 
-        function updateHistory() {
-            if (history.length === 0) {
-                historyList.innerHTML = '—';
-                return;
-            }
-
-            historyList.innerHTML = history.slice(0, 12).map(m => {
-                let className = 'history-item';
-                if (m < 2) className += ' low';
-                else if (m < 5) className += ' medium';
-                else if (m < 15) className += ' high';
-                else className += ' super';
-                return `<span class="${className}">${m}x</span>`;
-            }).join('');
-        }
-
-        function addToHistory(multiplier) {
-            history.unshift(multiplier);
-            if (history.length > 20) history.pop();
-            updateHistory();
-        }
-
+        // Функция получения прогноза
         async function getPrediction() {
             if (isPredicting) return;
-
+            
             isPredicting = true;
-
+            
+            // Меняем кнопку на состояние загрузки
             const originalText = predictBtn.innerHTML;
             predictBtn.innerHTML = '<span class="loading"></span> Анализируем статистику...';
             predictBtn.disabled = true;
-
+            
+            // Имитация задержки (анализ)
             await new Promise(resolve => setTimeout(resolve, 800));
-
-            const multiplier = generateRealPrediction();
-
+            
+            // Получаем случайный множитель
+            const multiplier = getRandomMultiplier();
+            
+            // Обновляем отображение
             predictionValue.textContent = multiplier.toFixed(2);
             predictionMultiplier.textContent = `x ${multiplier.toFixed(2)}`;
-
-            addToHistory(multiplier);
-
-            tg.HapticFeedback.notificationOccurred('success');
-
+            
+            // Возвращаем кнопку в исходное состояние
             predictBtn.innerHTML = originalText;
             predictBtn.disabled = false;
             isPredicting = false;
+            
+            // Вибрация на телефоне (если поддерживается)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
-
+        
+        // Назначаем обработчик на кнопку
         predictBtn.addEventListener('click', getPrediction);
-
-        tg.MainButton.text = "🎯 Получить прогноз";
-        tg.MainButton.onClick(() => {
-            getPrediction();
-        });
-        tg.MainButton.show();
-
-        tg.onEvent('viewportChanged', () => {
+        
+        // Telegram WebApp инициализация
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
             tg.expand();
-        });
-
-        updateHistory();
-
-        console.log('Lucky Jet Prediction loaded');
+            tg.ready();
+            
+            // Настраиваем главную кнопку в Telegram
+            tg.MainButton.text = "🎯 Получить прогноз";
+            tg.MainButton.onClick(() => {
+                getPrediction();
+            });
+            tg.MainButton.show();
+        }
+        
+        console.log('Lucky Jet прогноз загружен');
     </script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
