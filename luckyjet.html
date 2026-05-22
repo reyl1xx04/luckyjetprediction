@@ -210,27 +210,32 @@
         
         let isPredicting = false;
 
-        // Функция генерации прогноза на основе реальной статистики Lucky Jet
+        // Функция генерации прогноза - С НИЗКОЙ ВЕРОЯТНОСТЬЮ ВЫСОКИХ ИКСОВ
         function getRandomMultiplier() {
             const random = Math.random();
             let multiplier;
             
-            // Реальное распределение множителей в Lucky Jet:
-            // 65% - до 2x (1.0x - 2.0x)
-            // 20% - 2x-5x  
-            // 10% - 5x-15x
-            // 4% - 15x-50x
-            // 1% - 50x-200x (редкие джекпоты)
+            // НОВОЕ распределение множителей (высокие иксы РЕДКО):
+            // 80% - до 2x (1.0x - 2.0x)  ← увеличил с 65% до 80%
+            // 15% - 2x-5x                ← уменьшил с 20% до 15%
+            // 4% - 5x-15x                ← уменьшил с 10% до 4%
+            // 0.9% - 15x-50x             ← уменьшил с 4% до 0.9%
+            // 0.1% - 50x-200x            ← уменьшил с 1% до 0.1%
             
-            if (random < 0.65) {
+            if (random < 0.80) {
+                // 80% - низкие множители 1.0x - 2.0x
                 multiplier = 1.0 + Math.random() * 1.0;
-            } else if (random < 0.85) {
-                multiplier = 2.0 + Math.random() * 3.0;
             } else if (random < 0.95) {
-                multiplier = 5.0 + Math.random() * 10.0;
+                // 15% - средние 2.0x - 5.0x
+                multiplier = 2.0 + Math.random() * 3.0;
             } else if (random < 0.99) {
+                // 4% - высокие 5.0x - 15.0x
+                multiplier = 5.0 + Math.random() * 10.0;
+            } else if (random < 0.999) {
+                // 0.9% - очень высокие 15.0x - 50.0x
                 multiplier = 15.0 + Math.random() * 35.0;
             } else {
+                // 0.1% - супер редкие 50.0x - 200.0x
                 multiplier = 50.0 + Math.random() * 150.0;
             }
             
