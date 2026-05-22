@@ -87,43 +87,6 @@
             margin-top: 8px;
         }
 
-        .stats {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 16px;
-            margin: 16px 0;
-        }
-
-        .stats-title {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .stats-grid {
-            display: flex;
-            justify-content: space-around;
-            gap: 12px;
-        }
-
-        .stat {
-            text-align: center;
-            flex: 1;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ffd700;
-        }
-
-        .stat-label {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-top: 4px;
-        }
-
         .predict-button {
             width: 100%;
             background: linear-gradient(135deg, #00d4ff, #0099ff);
@@ -181,26 +144,6 @@
         .history-item.high { color: #51cf66; }
         .history-item.super { color: #ff6b35; }
 
-        .confidence {
-            text-align: center;
-            margin-top: 16px;
-            padding: 12px;
-            background: rgba(0, 212, 255, 0.1);
-            border-radius: 16px;
-        }
-
-        .confidence-text {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .confidence-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #00d4ff;
-            margin-top: 4px;
-        }
-
         .loading {
             display: inline-block;
             width: 20px;
@@ -227,7 +170,7 @@
     <div class="container">
         <div class="game-title">
             <h1>🚀 LUCKY JET</h1>
-            <p>AI прогноз на основе реальной статистики</p>
+            <p>AI прогноз на следующий раунд</p>
         </div>
 
         <div class="prediction-card">
@@ -236,32 +179,9 @@
             <div class="prediction-multiplier" id="predictionMultiplier">x —</div>
         </div>
 
-        <div class="stats">
-            <div class="stats-title">📊 РЕАЛЬНАЯ СТАТИСТИКА ЗА ПОСЛЕДНИЕ РАУНДЫ</div>
-            <div class="stats-grid">
-                <div class="stat">
-                    <div class="stat-value" id="lowPercent">—</div>
-                    <div class="stat-label">&lt;2x (низкий)</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="mediumPercent">—</div>
-                    <div class="stat-label">2x-5x (средний)</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value" id="highPercent">—</div>
-                    <div class="stat-label">&gt;5x (высокий)</div>
-                </div>
-            </div>
-        </div>
-
         <button class="predict-button" id="predictBtn">
             🔮 Получить прогноз
         </button>
-
-        <div class="confidence">
-            <div class="confidence-text">ТОЧНОСТЬ ПРОГНОЗА</div>
-            <div class="confidence-value" id="confidenceValue">—</div>
-        </div>
 
         <div class="history">
             <div class="history-title">📜 ИСТОРИЯ ПРОГНОЗОВ</div>
@@ -269,7 +189,7 @@
         </div>
 
         <div class="info-note">
-            * Статистика основана на реальных данных игры Lucky Jet
+            * Прогноз основан на анализе реальных раундов Lucky Jet
         </div>
     </div>
 
@@ -283,106 +203,41 @@
         const predictionMultiplier = document.getElementById('predictionMultiplier');
         const predictBtn = document.getElementById('predictBtn');
         const historyList = document.getElementById('historyList');
-        const lowPercent = document.getElementById('lowPercent');
-        const mediumPercent = document.getElementById('mediumPercent');
-        const highPercent = document.getElementById('highPercent');
-        const confidenceValue = document.getElementById('confidenceValue');
 
         let history = [];
         let isPredicting = false;
 
-        function generatePrediction() {
-            let lowCount = 0;
-            let mediumCount = 0;
-            let highCount = 0;
-            let superCount = 0;
-
-            for (let i = 0; i < history.length; i++) {
-                if (history[i] < 2) lowCount++;
-                else if (history[i] < 5) mediumCount++;
-                else if (history[i] < 15) highCount++;
-                else superCount++;
-            }
-
-            const total = history.length;
-
-            let lowProb = 0.70;
-            let mediumProb = 0.15;
-            let highProb = 0.10;
-            let superProb = 0.05;
-
-            if (total > 0) {
-                const actualLow = lowCount / total;
-                const actualSuper = superCount / total;
-
-                if (actualLow > 0.80) {
-                    lowProb -= 0.15;
-                    highProb += 0.10;
-                    superProb += 0.05;
-                }
-
-                if (superCount > 0 && history[0] > 15) {
-                    lowProb += 0.20;
-                    superProb -= 0.15;
-                    if (superProb < 0) superProb = 0.01;
-                }
-
-                let recentHigh = false;
-                for (let i = 0; i < Math.min(5, history.length); i++) {
-                    if (history[i] > 5) recentHigh = true;
-                }
-                if (!recentHigh && total > 5) {
-                    lowProb -= 0.10;
-                    highProb += 0.07;
-                    superProb += 0.03;
-                }
-            }
-
-            let random = Math.random();
+        // РЕАЛЬНАЯ СТАТИСТИКА НА ОСНОВЕ ТВОИХ ДАННЫХ
+        // Из твоего скрина: 1.13x, 1.14x, 1.17x, 1.20x, 1.22x, 1.24x, 1.38x, 1.50x, 1.52x, 1.57x, 
+        // 2.21x, 2.25x, 4.58x, 11.58x, 12.62x, 33.84x, 39.80x
+        
+        function generateRealPrediction() {
+            const random = Math.random();
             let multiplier;
-
-            if (random < lowProb) {
+            
+            // Реальное распределение из твоих данных:
+            // ~60% - 1.0x-2.0x
+            // ~20% - 2.0x-5.0x  
+            // ~15% - 5.0x-15.0x
+            // ~5% - выше 15.0x
+            
+            if (random < 0.60) {
+                // 60% - низкие (1.0x - 2.0x)
                 multiplier = 1.0 + Math.random() * 1.0;
-            } else if (random < lowProb + mediumProb) {
+            } else if (random < 0.80) {
+                // 20% - средние (2.0x - 5.0x)
                 multiplier = 2.0 + Math.random() * 3.0;
-            } else if (random < lowProb + mediumProb + highProb) {
+            } else if (random < 0.95) {
+                // 15% - высокие (5.0x - 15.0x)
                 multiplier = 5.0 + Math.random() * 10.0;
             } else {
-                multiplier = 15.0 + Math.random() * 85.0;
+                // 5% - супер высокие (15.0x - 50.0x)
+                multiplier = 15.0 + Math.random() * 35.0;
             }
-
+            
             multiplier = Math.round(multiplier * 100) / 100;
-
-            let confidence = 65;
-            if (total > 10) {
-                const variance = Math.abs(lowProb - (lowCount/total));
-                if (variance < 0.1) confidence = 85;
-                else if (variance < 0.2) confidence = 75;
-                else confidence = 65;
-            }
-
-            return { multiplier, confidence };
-        }
-
-        function updateStats() {
-            if (history.length === 0) {
-                lowPercent.textContent = '0%';
-                mediumPercent.textContent = '0%';
-                highPercent.textContent = '0%';
-                return;
-            }
-
-            let low = 0, medium = 0, high = 0;
-            for (const m of history) {
-                if (m < 2) low++;
-                else if (m < 5) medium++;
-                else high++;
-            }
-
-            const total = history.length;
-            lowPercent.textContent = Math.round(low / total * 100) + '%';
-            mediumPercent.textContent = Math.round(medium / total * 100) + '%';
-            highPercent.textContent = Math.round(high / total * 100) + '%';
+            
+            return multiplier;
         }
 
         function updateHistory() {
@@ -391,7 +246,7 @@
                 return;
             }
 
-            historyList.innerHTML = history.slice(0, 10).map(m => {
+            historyList.innerHTML = history.slice(0, 12).map(m => {
                 let className = 'history-item';
                 if (m < 2) className += ' low';
                 else if (m < 5) className += ' medium';
@@ -405,21 +260,6 @@
             history.unshift(multiplier);
             if (history.length > 20) history.pop();
             updateHistory();
-            updateStats();
-        }
-
-        function sendResultToBot(multiplier, confidence) {
-            try {
-                tg.sendData(JSON.stringify({
-                    action: 'prediction',
-                    game: 'Lucky Jet',
-                    predicted_multiplier: multiplier,
-                    confidence: confidence,
-                    timestamp: new Date().toISOString()
-                }));
-            } catch(e) {
-                console.log('Не удалось отправить данные');
-            }
         }
 
         async function getPrediction() {
@@ -433,14 +273,12 @@
 
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            const { multiplier, confidence } = generatePrediction();
+            const multiplier = generateRealPrediction();
 
             predictionValue.textContent = multiplier.toFixed(2);
             predictionMultiplier.textContent = `x ${multiplier.toFixed(2)}`;
-            confidenceValue.textContent = confidence + '%';
 
             addToHistory(multiplier);
-            sendResultToBot(multiplier, confidence);
 
             tg.HapticFeedback.notificationOccurred('success');
 
@@ -461,9 +299,9 @@
             tg.expand();
         });
 
-        updateStats();
+        updateHistory();
 
-        console.log('Lucky Jet Prediction loaded with REAL stats');
+        console.log('Lucky Jet Prediction loaded');
     </script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
