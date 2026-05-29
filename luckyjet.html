@@ -216,46 +216,93 @@
         // 2.5% - 15x-50x
         // 0.5% - 50x-200x
         
-        function getRandomMultiplier() {
-            const random = Math.random();
-            let multiplier;
-            
-            if (random < 0.82) {
-                // 82% - низкие множители 1.0x - 2.0x
-                multiplier = 1.0 + Math.random() * 1.0;
-            } else if (random < 0.92) {
-                // 10% - средние 2.0x - 5.0x
-                multiplier = 2.0 + Math.random() * 3.0;
-            } else if (random < 0.97) {
-                // 5% - высокие 5.0x - 15.0x
-                multiplier = 5.0 + Math.random() * 10.0;
-            } else if (random < 0.995) {
-                // 2.5% - очень высокие 15.0x - 50.0x
-                multiplier = 15.0 + Math.random() * 35.0;
-            } else {
-                // 0.5% - супер редкие 50.0x - 200.0x
-                multiplier = 50.0 + Math.random() * 150.0;
-            }
-            
-            multiplier = Math.round(multiplier * 100) / 100;
-            return multiplier;
-        }
+function getRandomMultiplier() {
 
-        function getConfidence(multiplier) {
-            let confidence;
-            if (multiplier < 2) {
-                confidence = 85 + Math.random() * 10;
-            } else if (multiplier < 5) {
-                confidence = 70 + Math.random() * 10;
-            } else if (multiplier < 15) {
-                confidence = 55 + Math.random() * 15;
-            } else if (multiplier < 50) {
-                confidence = 40 + Math.random() * 20;
-            } else {
-                confidence = 25 + Math.random() * 20;
-            }
-            return Math.round(confidence);
-        }
+    const random = Math.random();
+
+    let multiplier;
+
+    // 58% — очень низкие 1.00x - 1.35x
+    if (random < 0.58) {
+
+        multiplier = 1.00 + Math.random() * 0.35;
+
+    }
+
+    // 24% — низкие 1.35x - 2.00x
+    else if (random < 0.82) {
+
+        multiplier = 1.35 + Math.random() * 0.65;
+
+    }
+
+    // 11% — средние 2x - 5x
+    else if (random < 0.93) {
+
+        multiplier = 2 + Math.random() * 3;
+
+    }
+
+    // 5% — высокие 5x - 15x
+    else if (random < 0.98) {
+
+        multiplier = 5 + Math.random() * 10;
+
+    }
+
+    // 1.5% — очень редкие 15x - 50x
+    else if (random < 0.995) {
+
+        multiplier = 15 + Math.random() * 35;
+
+    }
+
+    // 0.5% — сверхредкие 50x+
+    else {
+
+        multiplier = 50 + Math.random() * 150;
+
+    }
+
+    return Number(multiplier.toFixed(2));
+}
+
+function getConfidence(multiplier) {
+
+    let confidence;
+
+    if (multiplier < 1.5) {
+
+        confidence = 88 + Math.random() * 8;
+
+    }
+
+    else if (multiplier < 2) {
+
+        confidence = 75 + Math.random() * 10;
+
+    }
+
+    else if (multiplier < 5) {
+
+        confidence = 55 + Math.random() * 15;
+
+    }
+
+    else if (multiplier < 15) {
+
+        confidence = 40 + Math.random() * 15;
+
+    }
+
+    else {
+
+        confidence = 20 + Math.random() * 20;
+
+    }
+
+    return Math.round(confidence);
+}
 
         function animateResult() {
             const card = document.querySelector('.prediction-card');
